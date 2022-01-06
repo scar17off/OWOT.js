@@ -60,12 +60,17 @@ var _OWOTS = class OWOTSjs {
 };
 var OWOTS = new _OWOTS();
 /*
-OWOT.js Library
-by scar17off
+	OWOT.js Library
+	by scar17off
 */
-var OWOTJS = class OWOTjs extends EventEmitter{
+function getRandomInt(min, max) {
+  	min = Math.ceil(min);
+  	max = Math.floor(max);
+  	return Math.floor(Math.random() * (max - min)) + min;
+}
+var OWOTJS = class OWOTjs{
 	constructor(options = {}){
-		super();
+		var ws;
 		var OTS = this;
 		var owot = OWOT;
 
@@ -81,65 +86,121 @@ var OWOTJS = class OWOTjs extends EventEmitter{
 			ws: options.ws,
 			chunkSize: 16,
 			playerJoined: false,
-			autoNickname: options.nickname
+			nickname: options.nickname,
+			realNickname: options.realname,
+			id: options.id,
+			registered: options.registered,
+			op: options.op,
+			admin: options.admin,
+			staff: options.staff,
+			world: options.world,
+			color: options.color
+		};
+		if(!OTS.options.world){
+			OTS.options.world = state.worldModel.pathname;
+		}
+		if(!OTS.options.color){
+			OTS.options.color = "#8c00ff"; // bjc back color lol
+		};
+		if(!OTS.options.origin){
+			OTS.options.origin = "https://ourworldoftext.com/";
+		};
+		if(!OTS.options.ws){
+			OTS.options.ws = "wss://ourworldoftext.com/ws/";
+		};
+		if(!OTS.options.nickname){
+			OTS.options.nickname = "by scar17off";
+		};
+		if(!OTS.options.realname){
+			OTS.options.realname = "by scar17off";
+		};
+		if(!OTS.options.id){
+			OTS.options.id = getRandomInt(1, 9999).toString();
+		};
+		if(!OTS.options.registered){
+			OTS.options.registered = false;
+		};
+		if(!OTS.options.op){
+			OTS.options.op = false;
+		};
+		if(!OTS.options.admin){
+			OTS.options.admin = false;
+		};
+		if(!OTS.options.staff){
+			OTS.options.staff = false;
 		};
 		OTS.chat = {
 			setNickname: (nickname) => {
-				let array = new ArrayBuffer(2);
-				let dv = new DataView(array);
-				dv.setUint8(1, `${owot}.chat.send("/nick ${OTS.options.autoNickname}")`);
-				ws.send(array);
+				ws.send(JSON.stringify({
+					"kind":"chat",
+					"channel":"4d10c7c24fbc12",
+					"nickname": OTS.options.nickname,
+					"realUsername": OTS.options.realname,
+					"id": OTS.options.id,
+					"message": "/nick "+nickname,
+					"registered": OTS.options.registered,
+					"location":"page",
+					"op": OTS.options.op,
+					"admin": OTS.options.admin,
+					"staff": OTS.options.staff,
+					"color": OTS.options.color,
+					"date":0,
+					"source":"chat"
+				}));
 			},
 			send: (message) => {
-				let array = new ArrayBuffer(2);
-				let dv = new DataView(array);
-				dv.setUint8(1, `${owot}.chat.send("${message}")`);
-				ws.send(array);
+				ws.send(JSON.stringify({
+					"kind":"chat",
+					"channel":"4d10c7c24fbc12",
+					"nickname": OTS.options.nickname,
+					"realUsername": OTS.options.realname,
+					"id": OTS.options.id,
+					"message": OTS.message,
+					"registered": OTS.options.registered,
+					"location":"page",
+					"op": OTS.options.op,
+					"admin": OTS.options.admin,
+					"staff": OTS.options.staff,
+					"color": OTS.options.color,
+					"date":0,
+					"source":"chat"
+				}))
 			}
 		};
 		OTS.world = {
 			setChar: (char, moveCursor, color, newLine) => {
-				let array = new ArrayBuffer(2);
-				let dv = new DataView(array);
-				dv.setUint8(1, `${owot}.typeChar("${char}", ${moveCursor}, ${color}, ${newLine})`);
-				ws.send(array);
+				let xhttpt = new XMLHttpRequest();
+				xhttpt.open("POST", OTS.options.origin);
+				xhttpt.responseType = "text";
+				xhttpt.send({
+					"edits": JSON.stringify({}); // coming soon
+				});
 			},
-			connect: (world) => {
-				var ws = new WebSocket(OTS.options.ws, null, {
+			connect: () => {
+				ws = new WebSocket(OTS.options.ws, null, {
                 	headers: {'Origin': OTS.options.origin}
             	});
-            	ws.binaryType = "arraybuffer";
             	ws.onopen = () => {
             		if(!ws) return;
 					OTS.player.joined = true;
-					if(!options.nickname) return;
-					else {
-						let array = new ArrayBuffer(2);
-						let dv = new DataView(array);
-						dv.setUint8(1, `${owot}.chat.send("/nick ${OTS.options.autoNickname}")`);
-						ws.send(array);
-					};
             	};
             	ws.onclose = () => {
             		OTS.player.joined = false;
-            		OWOTS.localMessage("[OWOP.js] Bot disconnected.");
+            		OWOTS.localMessage("[OWOT.js] Bot disconnected.");
             	};
+            	OTS.ws = ws;
 			},
 			leave: () => {
 				ws.close();
 				OTS.player.joined = false;
 			}
 		};
-		OTS.misc = {
-			teleport: (x,y) => {
-
-			}
-		};
 	};
 };
+
 let options = {
-	origin: "https://ourworldoftext.com/", // https://ourworldoftext.com/
-	ws: "wss://ourworldoftext.com/ewerqr/ws/", // wss://ourworldoftext.com/world/ws/ // wss://ourworldoftext.com/ws/
-	nickname: "somenick"
+	
 };
-var OWOTjs = new OWOTJS(options);
+var OTS = new OWOTJS(options);
+OTS.world.connect();
+//OTS.chat.send("Hello from Browser OWOT.js!");
