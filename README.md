@@ -3,7 +3,7 @@
 Put the "owot.js" file in your bot folder.
 #### Basic bot example
 ```js
-const OWOTJS = require("./OWOT.js");
+const OWOTJS = require("./owot.js");
 
 var bot = new OWOTJS.Client({});
 bot.world.connect();
