@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "events": "^3.3.0",
+    "ws": "^8.5.0"
+  },
+  "name": "owot-js",
+  "version": "1.0.0",
+  "description": "Simple library for OWOT chat bots.",
+  "main": "bot.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "nodemon bot.js"
+  },
+  "author": "jau",
+  "license": "MIT"
+}
