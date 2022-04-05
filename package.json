@@ -10,7 +10,9 @@
   "main": "bot.js",
   "devDependencies": {},
   "scripts": {
-    "test": "nodemon bot.js"
+    "test": "nodemon bot.js",
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
   },
   "author": "jau",
   "license": "MIT"
