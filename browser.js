@@ -3,81 +3,18 @@ function append(src, onload) {
     s.src = src;
     s.onload = onload;
     document.body.appendChild(s);
-}
-append("https://raw.githack.com/Olical/EventEmitter/master/EventEmitter.min.js");
-/* 
-OWOT For Scripters Lib
-by scar17off
-*/
-// @name         OWOT For Scripters
-// @version      1.2
-// @description  Easy lib for OWOT Scripters.
-// @author       scar17off / jau
-// @match        https://ourworldoftext.com/*
-var _OWOTS = class OWOTSjs {
-    constructor(){
-        this.owot = OWOT;
-        this.defaultChar = "█";
-    };
-    setChar(char, hexColor){
-        var hecc = ("00000" + hexColor.toString(16)).slice(-6);
-        var decimalColor = parseInt(hecc, 16);
-        return writeChar(char, false, decimalColor, false);
-    };
-    pasteImage(url, scale){
-        var hex = (dec) => {
-            dec = Math.floor(dec);
-            return (dec < 16 ? "0" : "") + dec.toString(16)
-        },
-        img = new Image(),
-        canvas = document.createElement("canvas"),
-        ctx = canvas.getContext("2d");
-        img.crossOrigin = "Anonymous";
-        img.src = url;
-        img.onload = () => {
-            canvas.width = img.width / 10 * scale;
-            canvas.height = img.height / 18 * scale;
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data,
-            str = "";
-            for (var i = 0; i < canvas.height * canvas.width * 4; i += canvas.width * 4) {
-                for (var j = 0; j < canvas.width * 4; j += 4) {
-                    let alpha = data[i + j + 3] / 255;
-                    var color = hex(data[i + j] * alpha + 255 - data[i + j + 3]) + hex(data[i + j + 1] * alpha + 255 - data[i + j + 3]) + hex(data[i + j + 2] * alpha + 255 - data[i + j + 3]);
-                    this.setChar(this.defaultChar, color);
-                };
-                return writeChar("\n");
-            };
-        }
-    };
-    localMessage(prefix, message){
-        console.log("@"+message);
-        return addChat(null,0,"",prefix+message);
-    };
-    sendMessage(message){
-        return api_chat_send(message);
-    };
 };
-var OWOTS = new _OWOTS();
-/*
-	OWOT.js Library
-	by scar17off
-*/
-function getRandomInt(min, max) {
-  	min = Math.ceil(min);
-  	max = Math.floor(max);
-  	return Math.floor(Math.random() * (max - min)) + min;
-}
-var OWOTJS = class OWOTjs{
+append("https://raw.githack.com/Olical/EventEmitter/master/EventEmitter.min.js", () => { window.EventEmitter = new EventEmitter(); });
+var OWOTJS = class OWOTjs {
 	constructor(options = {}){
+		var Events = window.EventEmitter;
 		var ws;
 		var OTS = this;
-		var owot = OWOT;
 
 		OTS.player = {
-			color: null,
-			rank: null,
-			id: null,
+			color: 0,
+			rank: 0,
+			id: 0,
 			x: 0,
 			y: 0
 		};
@@ -87,120 +24,126 @@ var OWOTJS = class OWOTjs{
 			chunkSize: 16,
 			playerJoined: false,
 			nickname: options.nickname,
-			realNickname: options.realname,
-			id: options.id,
-			registered: options.registered,
-			op: options.op,
-			admin: options.admin,
-			staff: options.staff,
-			world: options.world,
-			color: options.color
+			log: false
 		};
-		if(!OTS.options.world){
-			OTS.options.world = state.worldModel.pathname;
-		}
-		if(!OTS.options.color){
-			OTS.options.color = "#8c00ff"; // bjc back color lol
-		};
-		if(!OTS.options.origin){
-			OTS.options.origin = "https://ourworldoftext.com/";
-		};
-		if(!OTS.options.ws){
-			OTS.options.ws = "wss://ourworldoftext.com/ws/";
-		};
-		if(!OTS.options.nickname){
-			OTS.options.nickname = "by scar17off";
-		};
-		if(!OTS.options.realname){
-			OTS.options.realname = "by scar17off";
-		};
-		if(!OTS.options.id){
-			OTS.options.id = getRandomInt(1, 9999).toString();
-		};
-		if(!OTS.options.registered){
-			OTS.options.registered = false;
-		};
-		if(!OTS.options.op){
-			OTS.options.op = false;
-		};
-		if(!OTS.options.admin){
-			OTS.options.admin = false;
-		};
-		if(!OTS.options.staff){
-			OTS.options.staff = false;
-		};
+		if(!OTS.options.world) OTS.options.world = state.worldModel.pathname;
+		if(!OTS.options.color) OTS.options.color = "0";
+		if(!OTS.options.log) OTS.options.log = false;
+		if(!OTS.options.origin) OTS.options.origin = "https://ourworldoftext.com/";
+		if(!OTS.options.ws) OTS.options.ws = "wss://ourworldoftext.com/ws/";
 		OTS.chat = {
 			setNickname: (nickname) => {
+				if(ws.readyState !== 1) return;
 				ws.send(JSON.stringify({
-					"kind":"chat",
-					"channel":"4d10c7c24fbc12",
-					"nickname": OTS.options.nickname,
-					"realUsername": OTS.options.realname,
-					"id": OTS.options.id,
-					"message": "/nick "+nickname,
-					"registered": OTS.options.registered,
-					"location":"page",
-					"op": OTS.options.op,
-					"admin": OTS.options.admin,
-					"staff": OTS.options.staff,
-					"color": OTS.options.color,
-					"date":0,
-					"source":"chat"
+					kind: "chat",
+					nickname: "",
+					message: "/nick "+nickname,
+					location: "page",
+					color: OTS.options.color
 				}));
 			},
-			send: (message) => {
+			send: (message, globalChat) => {
+				if(ws.readyState !== 1) return;
+				let chat;
+				if(globalChat == true) {chat = "global"} else if(globalChat == false) {chat = "page"} else {chat = "page"};
 				ws.send(JSON.stringify({
-					"kind":"chat",
-					"channel":"4d10c7c24fbc12",
-					"nickname": OTS.options.nickname,
-					"realUsername": OTS.options.realname,
-					"id": OTS.options.id,
-					"message": OTS.message,
-					"registered": OTS.options.registered,
-					"location":"page",
-					"op": OTS.options.op,
-					"admin": OTS.options.admin,
-					"staff": OTS.options.staff,
-					"color": OTS.options.color,
-					"date":0,
-					"source":"chat"
-				}))
+					kind: "chat",
+					nickname: "",
+					message: message,
+					location: chat,
+					color: OTS.options.color
+				}));
 			}
 		};
 		OTS.world = {
-			setChar: (char, moveCursor, color, newLine) => {
-				let xhttpt = new XMLHttpRequest();
-				xhttpt.open("POST", OTS.options.origin);
-				xhttpt.responseType = "text";
-				xhttpt.send({
-					"edits": JSON.stringify({}); // coming soon
-				});
+			protect: (chunkX, chunkY, type) => {
+				if(ws.readyState !== 1) return;
+				if(!chunkX || !chunkY || !type) return "Not enough arguments.";
+				ws.send(JSON.stringify({"kind":"protect","data":{"tileX":chunkX,"tileY":chunkY,"type":type},"action":"protect"}));
 			},
-			connect: () => {
+			move: (x, y) => {
+				if(ws.readyState !== 1) return;
+				ws.send(JSON.stringify({"kind":"cursor","position":{"tileX":0,"tileY":1,"charX":0,"charY":1}}));
+			},
+			setChar: (char, x, y, color) => {
+				if(ws.readyState !== 1) return;
+				ws.send(JSON.stringify({"kind":"write","edits":[calculatecoords(x, y).concat(OTS.player.color,char,144)]}));
+			},
+			connect: (world) => {
+				let worldToConnect = world || state.worldModel.name;
 				ws = new WebSocket(OTS.options.ws, null, {
                 	headers: {'Origin': OTS.options.origin}
             	});
+            	Events.emit("connect");
             	ws.onopen = () => {
             		if(!ws) return;
 					OTS.player.joined = true;
+					Events.emit("join");
             	};
             	ws.onclose = () => {
             		OTS.player.joined = false;
-            		OWOTS.localMessage("[OWOT.js] Bot disconnected.");
+            		if(OTS.options.log) console.log("[OWOT.js] Bot disconnected.");
+            		Events.emit("disconnect");
+            	};
+            	ws.onmessage = (msg) => {
+            		let data = JSON.parse(msg.data);
+            		if(data.kind == "chat") Events.emit("chat", data);
+            		if(data.kind == "tileUpdate") Events.emit("tileUpdate", data);
             	};
             	OTS.ws = ws;
 			},
 			leave: () => {
+				if(ws.readyState !== 1) return;
 				ws.close();
+				Events.emit("close");
 				OTS.player.joined = false;
+			}
+		};
+		OTS.on = (event, callback) => {
+			if(!event || !callback) return "Not enough arguments.";
+			Events.on(event, callback);
+		};
+		OTS.utils = {
+			hexToRgb: (hex) => {
+			  	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+			  	if(result){
+			  	    let r = parseInt(result[1], 16);
+			  	    let g = parseInt(result[2], 16);
+			  	    let b = parseInt(result[3], 16);
+			  	    let a = [];
+			  	    a.push(r);
+			  	    a.push(g);
+			  	    a.push(b);
+			  	    return a
+			  	} 
+			  	return null;
+			},
+			getRandomHex: () => {
+				return (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
+			},
+			getRandomInt: (min, max) => {
+			  	min = Math.ceil(min);
+			  	max = Math.floor(max);
+			  	return Math.floor(Math.random() * (max - min)) + min;
+			},
+			rgbToInt: (r, g, b) => {
+				return b | g << 8 | r << 16;
+			},
+			calculateCoords: (x, y) => {
+			    x-=1;
+				return [Math.floor(y / 8), Math.floor(x / 16), y - Math.floor(y / 8) * 8, x - Math.floor(x / 16) * 16];
+			},
+			getMyChunkPos: () => {
+				calculatecoords(truecoords()[0], truecoords()[1]);
+			},
+			getChunkPos: (x, y) => {
+				calculatecoords(x, y);
+			},
+			getRealPos: () => {
+			    let pos = [cursorCoords[0] * 16 + cursorCoords[2], cursorCoords[1] * 8 + cursorCoords[3]];
+			    if(!pos[1].toString().startsWith("-")) pos[1] = Math.abs(pos[1]);
+			    return pos;
 			}
 		};
 	};
 };
-
-let options = {
-	
-};
-var OTS = new OWOTJS(options);
-OTS.world.connect();
-//OTS.chat.send("Hello from Browser OWOT.js!");
